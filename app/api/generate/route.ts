@@ -116,9 +116,22 @@ export async function POST(request: NextRequest) {
     } else {
       // IMAGE GENERATION (imagegeneration@006)
       console.log('📸 Generating image with imagegeneration@006...');
+      console.log('🔍 VERIFYING MODEL:', {
+        modelName: 'imagegeneration@006',
+        modelType: typeof 'imagegeneration@006',
+        timestamp: new Date().toISOString(),
+      });
       
       const generativeModel = vertexAI.getGenerativeModel({
         model: 'imagegeneration@006',
+      });
+      
+      console.log('🔍 MODEL INITIALIZED:', {
+        model: 'imagegeneration@006',
+        vertexAIConfig: {
+          project: projectId,
+          location: 'us-central1',
+        },
       });
 
       // Retry logic for rate limits (429 errors)
@@ -202,28 +215,43 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('❌ Lane 2 Error:', error);
     
-    // Check for rate limit errors (429)
+    // DEBUG MODE: Log the FULL error object
+    console.error('🔴 RAW GOOGLE CLOUD ERROR:', {
+      status: error.status,
+      code: error.code,
+      message: error.message,
+      fullError: error,
+      errorString: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+    });
+    
+    // Check for rate limit errors (429) but DON'T hide the message
     const isRateLimit = error.status === 429 || error.code === 429 || 
                        (error.message && error.message.includes('429')) ||
                        (error.message && error.message.includes('Quota exceeded'));
     
     if (isRateLimit) {
+      // Return the REAL error message, not a generic one
       return NextResponse.json(
         {
           error: 'Rate limit exceeded',
-          message: 'Too many requests. Please wait 60 seconds and try again. The quota resets every minute.',
+          message: error.message || 'Quota exceeded for image generation',
           rateLimit: true,
           retryAfter: 60,
-          details: error.message || 'Quota exceeded for image generation',
+          // Include the FULL error details so we can see which model
+          rawError: error.message,
+          errorDetails: JSON.stringify(error, Object.getOwnPropertyNames(error)),
         },
         { status: 429 }
       );
     }
     
+    // For all other errors, return the REAL message
     return NextResponse.json(
       {
         error: 'Generation failed',
         message: error.message || 'Unknown error',
+        rawError: error.message,
+        errorDetails: JSON.stringify(error, Object.getOwnPropertyNames(error)),
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       },
       { status: 500 }

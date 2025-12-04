@@ -137,20 +137,22 @@ export default function HomePage() {
       });
 
       if (!generateResponse.ok) {
-        const error = await generateResponse.json();
+        const errorData = await generateResponse.json();
         
-        // Handle rate limit errors with retry suggestion
-        if (generateResponse.status === 429 || error.rateLimit) {
-          const retryAfter = error.retryAfter || 60;
-          throw new Error(
-            `Rate limit exceeded! Please wait ${retryAfter} seconds before trying again.\n\n` +
-            `This happens when too many requests are made too quickly. ` +
-            `The quota resets every minute.\n\n` +
-            `Tip: Wait ${retryAfter} seconds, then try again.`
-          );
-        }
+        // DEBUG MODE: Log the full error to console
+        console.error('🔴 SERVER ERROR DETAILS:', {
+          status: generateResponse.status,
+          error: errorData,
+          fullResponse: errorData,
+        });
         
-        throw new Error(error.message || 'Generation failed');
+        // Show the REAL error message (unmasked)
+        const errorMessage = errorData.message || errorData.error || JSON.stringify(errorData);
+        
+        throw new Error(
+          `Server Error (${generateResponse.status}): ${errorMessage}\n\n` +
+          `Full Error: ${JSON.stringify(errorData, null, 2)}`
+        );
       }
 
       const generateData = await generateResponse.json();
