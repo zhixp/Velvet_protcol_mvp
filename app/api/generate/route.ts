@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     // Initialize Vertex AI with explicit credentials (Vercel) or default auth (local)
     const vertexAIConfig: any = {
       project: projectId,
-      location: 'us-central1',
+      location: 'us-west1',
     };
 
     if (credentials) {
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         model: 'imagegeneration@006',
         vertexAIConfig: {
           project: projectId,
-          location: 'us-central1',
+          location: 'us-west1',
         },
       });
 
