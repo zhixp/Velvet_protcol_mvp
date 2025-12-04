@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
         success: true,
         outputType: 'image',
         resultUrl: imageUrl,
-        model: 'imagen-3.0-fast-generate-001',
+        model: 'imagegeneration@006',
         creditCost: 1,
       });
     }
