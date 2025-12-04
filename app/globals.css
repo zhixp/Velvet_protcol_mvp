@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --velvet-black: #050505;
+    --velvet-charcoal: #121212;
+    --velvet-gold: #C5A059;
+    --velvet-blue: #3B82F6;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    @apply bg-velvet-black text-white antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-velvet-black;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-velvet-charcoal rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-velvet-gold/30;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-glass border border-white/10 rounded-2xl;
+  }
+
+  .velvet-gradient {
+    background: linear-gradient(135deg, #050505 0%, #121212 100%);
+  }
+}
+
