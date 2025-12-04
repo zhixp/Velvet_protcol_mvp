@@ -78,23 +78,27 @@ vercel --prod
 
 In Vercel Dashboard → Your Project → Settings → Environment Variables:
 
-### Required for Backend (Phase 2):
+### **Required NOW (For Testing AI Outputs):**
 
 ```env
-# Google Cloud Vertex AI
+# Google Cloud Vertex AI - REQUIRED
 GOOGLE_CLOUD_PROJECT_ID=your-project-id
-GOOGLE_APPLICATION_CREDENTIALS=<paste-service-account-json>
-
-# Firebase
-NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-auth-domain
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-storage-bucket
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
-NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
+GOOGLE_APPLICATION_CREDENTIALS=<paste-service-account-json-as-string>
 ```
 
-**Note:** For now, the UI will work without these. Add them when you're ready to connect the backend.
+### **Optional (Add Later):**
+
+```env
+# Firebase - SKIP FOR NOW, ADD LATER
+# NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
+# NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-auth-domain
+# NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+# NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-storage-bucket
+# NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+# NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
+```
+
+**Current Strategy:** Test AI outputs first (Gemini + Imagen), add Firebase later for user management and credits.
 
 ---
 
@@ -131,12 +135,16 @@ NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
 - Generate button with loading animation
 - Reset functionality
 - All animations and transitions
+- Demo credit counter (in-memory, resets on refresh)
 
-### ⚠️ Not Yet Connected:
-- Lane 1 (Gemini analysis)
-- Lane 2 (Imagen-3.0 generation)
-- Firebase Auth
-- Firestore credits
+### 🔧 Next: Connect AI (Priority):
+- Lane 1 (Gemini analysis) - NEEDS VERTEX AI SETUP
+- Lane 2 (Imagen-3.0 generation) - NEEDS VERTEX AI SETUP
+
+### ⏳ Later: Add Business Layer:
+- Firebase Auth (user accounts)
+- Firestore credits (persistent tracking)
+- Payment integration
 
 ---
 

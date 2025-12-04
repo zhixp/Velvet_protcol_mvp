@@ -125,3 +125,6 @@ CRITICAL INSTRUCTION: Every time you fix a bug, change a feature, or refactor co
 [2025-12-04] Hid large mode selector section when in generation mode to reduce confusion.
 [2025-12-04] Completed full audit - 0 linter errors, all components functional, production-ready.
 [2025-12-04] Created AUDIT_REPORT.md documenting all components, security, and UX flow.
+[2025-12-04] Added demo credit system (in-memory counter) to test UX without Firebase.
+[2025-12-04] Updated deployment strategy: Firebase deferred to Phase 2, focus on AI output testing.
+[2025-12-04] Created QUICK_START.md with streamlined deployment guide for Vercel + Vertex AI only.

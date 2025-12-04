@@ -14,6 +14,9 @@ export default function HomePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [userPrompt, setUserPrompt] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Demo credit system (in-memory, no Firebase needed for testing)
+  const [demoCredits, setDemoCredits] = useState(10);
 
   const handleFileSelect = (file: File) => {
     setUploadedFile(file);
@@ -31,11 +34,18 @@ export default function HomePage() {
       return;
     }
 
+    // Demo credit check (no Firebase needed for testing)
+    if (demoCredits < 1) {
+      alert('No credits remaining!\n\n(This is a demo counter. Refresh the page to reset to 10 credits.)\n\nIn production, Firebase will manage real credits.');
+      return;
+    }
+
     setIsGenerating(true);
     console.log('🚀 Starting Generation:', {
       file: uploadedFile.name,
       prompt: userPrompt,
       mode: selectedMode,
+      creditsRemaining: demoCredits,
     });
 
     try {
@@ -48,8 +58,12 @@ export default function HomePage() {
       // Simulate API call for now
       await new Promise(resolve => setTimeout(resolve, 3000));
       
+      // Deduct demo credit
+      setDemoCredits(prev => prev - 1);
+      
       console.log('✅ Generation complete!');
-      alert('Generation complete! (Backend API not connected yet)\n\nNext steps:\n1. Set up Google Cloud credentials\n2. Connect Vertex AI\n3. Implement Lane 1 & 2');
+      console.log(`💰 Credits remaining: ${demoCredits - 1}`);
+      alert(`Generation complete! (Backend API not connected yet)\n\nCredits remaining: ${demoCredits - 1}/10\n\nNext steps:\n1. Set up Google Cloud Vertex AI\n2. Connect Gemini + Imagen APIs\n3. Test real AI outputs`);
     } catch (error) {
       console.error('❌ Generation failed:', error);
       alert('Generation failed. Check console for details.');
@@ -70,6 +84,7 @@ export default function HomePage() {
     setPreviewUrl(null);
     setUserPrompt('');
     setIsGenerating(false);
+    // Keep demo credits (don't reset on image reset)
   };
 
   return (
@@ -120,6 +135,10 @@ export default function HomePage() {
               <p className="text-gray-500 text-sm">
                 The Category King • Powered by Google Vertex AI
               </p>
+              {/* Demo Credits Display */}
+              <p className="text-velvet-gold text-xs mt-2">
+                Demo Credits: {demoCredits}/10 (Refresh to reset)
+              </p>
             </div>
 
             <div className="flex gap-8 text-sm text-gray-400">
@@ -138,6 +157,9 @@ export default function HomePage() {
           <div className="mt-8 pt-8 border-t border-white/5 text-center text-gray-600 text-xs">
             <p>
               © 2025 Velvet Protocol. Built with Next.js 14 • Google Cloud Vertex AI
+            </p>
+            <p className="mt-2 text-gray-700">
+              Testing Mode: Firebase disabled • Using demo credit counter
             </p>
           </div>
         </div>

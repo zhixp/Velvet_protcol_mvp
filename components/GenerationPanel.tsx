@@ -186,7 +186,6 @@ export default function GenerationPanel({
                   )}
                   style={{
                     borderColor: isSelected ? MODE_COLORS[mode.id] : 'rgba(255, 255, 255, 0.1)',
-                    ringColor: isSelected ? MODE_COLORS[mode.id] : undefined,
                   }}
                 >
                   {isSelected && (
