@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
 
     // Validate environment variables
     const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
+    const credentialsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS;
     
     if (!projectId) {
       console.error('❌ Missing GOOGLE_CLOUD_PROJECT_ID');
@@ -36,17 +37,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Parse credentials from JSON string (Vercel format)
+    let credentials;
+    if (credentialsJson) {
+      try {
+        credentials = typeof credentialsJson === 'string' 
+          ? JSON.parse(credentialsJson) 
+          : credentialsJson;
+      } catch (error) {
+        console.error('❌ Invalid credentials JSON:', error);
+        return NextResponse.json(
+          { 
+            error: 'Server configuration error',
+            message: 'GOOGLE_APPLICATION_CREDENTIALS is not valid JSON',
+          },
+          { status: 500 }
+        );
+      }
+    }
+
     console.log('🎨 Lane 2 Starting:', { 
       outputType, 
       promptLength: enhancedPrompt.length,
       projectId,
+      hasCredentials: !!credentials,
     });
 
-    // Initialize Vertex AI
-    const vertexAI = new VertexAI({
+    // Initialize Vertex AI with explicit credentials (Vercel) or default auth (local)
+    const vertexAIConfig: any = {
       project: projectId,
       location: 'us-central1',
-    });
+    };
+
+    if (credentials) {
+      vertexAIConfig.googleAuthOptions = {
+        credentials: credentials,
+      };
+    }
+
+    const vertexAI = new VertexAI(vertexAIConfig);
 
     if (outputType === 'video') {
       // VIDEO GENERATION (Veo 3.1)

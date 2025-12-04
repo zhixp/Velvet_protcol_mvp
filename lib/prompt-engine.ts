@@ -47,6 +47,28 @@ const MODE_TOKENS = {
 };
 
 /**
+ * Parse credentials from environment variable (Vercel stores as JSON string)
+ */
+function parseCredentials() {
+  const credentialsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  
+  if (!credentialsJson) {
+    // If not set, SDK will try default auth (local dev)
+    return undefined;
+  }
+
+  try {
+    // Vercel stores as JSON string, parse it
+    return typeof credentialsJson === 'string' 
+      ? JSON.parse(credentialsJson) 
+      : credentialsJson;
+  } catch (error) {
+    console.error('❌ Failed to parse GOOGLE_APPLICATION_CREDENTIALS:', error);
+    throw new Error('GOOGLE_APPLICATION_CREDENTIALS is not valid JSON');
+  }
+}
+
+/**
  * Initialize Vertex AI client for Lane 1 (Gemini 1.5 Pro)
  */
 function getVertexAIClient() {
@@ -56,10 +78,22 @@ function getVertexAIClient() {
     throw new Error('GOOGLE_CLOUD_PROJECT_ID environment variable not set');
   }
 
-  return new VertexAI({
+  const credentials = parseCredentials();
+
+  // Initialize with explicit credentials if available (Vercel)
+  // Otherwise SDK will use default auth (local dev)
+  const config: any = {
     project: projectId,
     location: 'us-central1',
-  });
+  };
+
+  if (credentials) {
+    config.googleAuthOptions = {
+      credentials: credentials,
+    };
+  }
+
+  return new VertexAI(config);
 }
 
 /**
