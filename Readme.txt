@@ -37,7 +37,7 @@ Cost: $0.00.
 
 LANE 2 (The Product - Paid):
 
-IMAGE GEN (The Core): imagen-3.0-generate-001.
+IMAGE GEN (The Core): imagen-3.0-fast-generate-001.
 
 Cost: Low.
 
@@ -137,3 +137,6 @@ CRITICAL INSTRUCTION: Every time you fix a bug, change a feature, or refactor co
 [2025-12-04] Implemented Lane 1 API route (/api/analyze) with Gemini 1.5 Pro for prompt analysis.
 [2025-12-04] Implemented Lane 2 API route (/api/generate) with Imagen-3.0 and Veo 3.1 support.
 [2025-12-04] Connected real Vertex AI APIs - ready to test AI output quality on Vercel.
+[2025-12-04] Fixed VertexAI authentication for Vercel - parse JSON credentials from env var and pass explicitly.
+[2025-12-04] Fixed Bug 1: Async state update causing incorrect credit display in console logs.
+[2025-12-04] Fixed Bug 2: Malformed data URLs when API response lacks image data - added validation.

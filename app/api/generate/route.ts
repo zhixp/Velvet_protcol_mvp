@@ -114,11 +114,11 @@ export async function POST(request: NextRequest) {
       });
 
     } else {
-      // IMAGE GENERATION (Imagen-3.0)
-      console.log('📸 Generating image with Imagen-3.0...');
+      // IMAGE GENERATION (Imagen-3.0 Fast)
+      console.log('📸 Generating image with Imagen-3.0 Fast...');
       
       const generativeModel = vertexAI.getGenerativeModel({
-        model: 'imagen-3.0-generate-001',
+        model: 'imagen-3.0-fast-generate-001',
       });
 
       const result = await generativeModel.generateContent({
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
         success: true,
         outputType: 'image',
         resultUrl: imageUrl,
-        model: 'imagen-3.0-generate-001',
+        model: 'imagen-3.0-fast-generate-001',
         creditCost: 1,
       });
     }
