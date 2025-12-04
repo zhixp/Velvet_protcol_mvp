@@ -28,6 +28,10 @@ export default function HomePage() {
   
   // Result state
   const [generatedResult, setGeneratedResult] = useState<string | null>(null);
+  
+  // Rate limiting: prevent multiple simultaneous requests
+  const [lastRequestTime, setLastRequestTime] = useState<number>(0);
+  const RATE_LIMIT_MS = 2000; // Minimum 2 seconds between requests
 
   const handleFileSelect = (file: File) => {
     setUploadedFile(file);
@@ -56,6 +60,21 @@ export default function HomePage() {
       return;
     }
 
+    // Rate limiting: prevent rapid-fire requests
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTime;
+    if (timeSinceLastRequest < RATE_LIMIT_MS) {
+      const waitTime = Math.ceil((RATE_LIMIT_MS - timeSinceLastRequest) / 1000);
+      alert(`Please wait ${waitTime} second${waitTime > 1 ? 's' : ''} before generating again. This prevents hitting rate limits.`);
+      return;
+    }
+
+    // Prevent multiple simultaneous requests
+    if (isGenerating) {
+      alert('Generation already in progress. Please wait...');
+      return;
+    }
+
     // Calculate credit cost
     const creditCost = outputType === 'video' ? 10 : 1;
 
@@ -66,6 +85,7 @@ export default function HomePage() {
     }
 
     setIsGenerating(true);
+    setLastRequestTime(now);
     console.log('🚀 Starting Generation:', {
       file: uploadedFile.name,
       prompt: userPrompt,
@@ -118,6 +138,18 @@ export default function HomePage() {
 
       if (!generateResponse.ok) {
         const error = await generateResponse.json();
+        
+        // Handle rate limit errors with retry suggestion
+        if (generateResponse.status === 429 || error.rateLimit) {
+          const retryAfter = error.retryAfter || 60;
+          throw new Error(
+            `Rate limit exceeded! Please wait ${retryAfter} seconds before trying again.\n\n` +
+            `This happens when too many requests are made too quickly. ` +
+            `The quota resets every minute.\n\n` +
+            `Tip: Wait ${retryAfter} seconds, then try again.`
+          );
+        }
+        
         throw new Error(error.message || 'Generation failed');
       }
 

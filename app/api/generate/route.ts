@@ -121,14 +121,46 @@ export async function POST(request: NextRequest) {
         model: 'imagegeneration@006',
       });
 
-      const result = await generativeModel.generateContent({
-        contents: [{
-          role: 'user',
-          parts: [{
-            text: enhancedPrompt,
-          }],
-        }],
-      });
+      // Retry logic for rate limits (429 errors)
+      let result;
+      const maxRetries = 3;
+      let lastError;
+      
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          result = await generativeModel.generateContent({
+            contents: [{
+              role: 'user',
+              parts: [{
+                text: enhancedPrompt,
+              }],
+            }],
+          });
+          break; // Success, exit retry loop
+        } catch (error: any) {
+          lastError = error;
+          
+          // Check if it's a rate limit error
+          const isRateLimit = error.status === 429 || error.code === 429 || 
+                             (error.message && error.message.includes('429')) ||
+                             (error.message && error.message.includes('Quota exceeded'));
+          
+          if (isRateLimit && attempt < maxRetries - 1) {
+            // Exponential backoff: 2s, 4s, 8s
+            const delay = Math.pow(2, attempt) * 1000;
+            console.log(`⚠️ Rate limit hit (attempt ${attempt + 1}/${maxRetries}), retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+          
+          // Not a rate limit, or out of retries - throw immediately
+          throw error;
+        }
+      }
+      
+      if (!result) {
+        throw lastError || new Error('Generation failed after retries');
+      }
 
       console.log('✅ Image generation complete');
 
@@ -169,6 +201,24 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('❌ Lane 2 Error:', error);
+    
+    // Check for rate limit errors (429)
+    const isRateLimit = error.status === 429 || error.code === 429 || 
+                       (error.message && error.message.includes('429')) ||
+                       (error.message && error.message.includes('Quota exceeded'));
+    
+    if (isRateLimit) {
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded',
+          message: 'Too many requests. Please wait 60 seconds and try again. The quota resets every minute.',
+          rateLimit: true,
+          retryAfter: 60,
+          details: error.message || 'Quota exceeded for image generation',
+        },
+        { status: 429 }
+      );
+    }
     
     return NextResponse.json(
       {
