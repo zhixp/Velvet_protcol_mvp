@@ -100,9 +100,9 @@ export default function HomePage() {
       console.log('✅ Lane 1 Complete:', analysis.detectedVibe);
       console.log('📝 Director\'s Script:', analysis.directorScript);
 
-      // LANE 2: Generate with Imagen-3.0 or Veo 3.1
+      // LANE 2: Generate with imagegeneration@006 or Veo 3.1
       if (outputType === 'image') {
-        console.log('🎨 Lane 2: Generating with Imagen-3.0...');
+        console.log('🎨 Lane 2: Generating with imagegeneration@006...');
       } else {
         console.log('🎬 Lane 2: Generating with Veo 3.1...');
       }
