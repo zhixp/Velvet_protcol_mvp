@@ -6,7 +6,13 @@ import HeroSection from '@/components/HeroSection';
 import ModeSelector from '@/components/ModeSelector';
 import PortfolioGrid from '@/components/PortfolioGrid';
 import GenerationPanel from '@/components/GenerationPanel';
+import ResultPanel from '@/components/ResultPanel';
 import type { VelvetMode } from '@/lib/prompt-engine';
+
+// Admin password for unlimited testing
+const ADMIN_PASSWORD = 'velvet2025';
+
+export type OutputType = 'image' | 'video';
 
 export default function HomePage() {
   const [selectedMode, setSelectedMode] = useState<VelvetMode>('sport');
@@ -14,9 +20,14 @@ export default function HomePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [userPrompt, setUserPrompt] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [outputType, setOutputType] = useState<OutputType>('image');
   
   // Demo credit system (in-memory, no Firebase needed for testing)
   const [demoCredits, setDemoCredits] = useState(10);
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Result state
+  const [generatedResult, setGeneratedResult] = useState<string | null>(null);
 
   const handleFileSelect = (file: File) => {
     setUploadedFile(file);
@@ -28,15 +39,29 @@ export default function HomePage() {
     console.log('File selected:', file.name, file.size, 'bytes');
   };
 
+  const handleAdminLogin = () => {
+    const password = prompt('Enter admin password for unlimited credits:');
+    if (password === ADMIN_PASSWORD) {
+      setIsAdmin(true);
+      setDemoCredits(999);
+      alert('🔓 Admin mode activated!\n\nUnlimited credits for testing.\nPassword: velvet2025');
+    } else if (password) {
+      alert('❌ Incorrect password');
+    }
+  };
+
   const handleGenerate = async () => {
     if (!uploadedFile || !userPrompt.trim()) {
       alert('Please upload an image and enter a prompt');
       return;
     }
 
-    // Demo credit check (no Firebase needed for testing)
-    if (demoCredits < 1) {
-      alert('No credits remaining!\n\n(This is a demo counter. Refresh the page to reset to 10 credits.)\n\nIn production, Firebase will manage real credits.');
+    // Calculate credit cost
+    const creditCost = outputType === 'video' ? 10 : 1;
+
+    // Demo credit check (skip for admin)
+    if (!isAdmin && demoCredits < creditCost) {
+      alert(`Not enough credits!\n\nRequired: ${creditCost} credits\nAvailable: ${demoCredits} credits\n\n${outputType === 'video' ? 'Try generating an image (1 credit) instead, or' : ''} Refresh the page to reset.`);
       return;
     }
 
@@ -45,28 +70,43 @@ export default function HomePage() {
       file: uploadedFile.name,
       prompt: userPrompt,
       mode: selectedMode,
+      outputType: outputType,
+      creditCost: creditCost,
       creditsRemaining: demoCredits,
+      adminMode: isAdmin,
     });
 
     try {
       // TODO: Implement Lane 1 analysis with Gemini
       console.log('📊 Lane 1: Analyzing with Gemini 1.5 Pro...');
       
-      // TODO: Implement Lane 2 generation with Imagen-3.0
-      console.log('🎨 Lane 2: Generating with Imagen-3.0...');
+      if (outputType === 'image') {
+        // TODO: Implement Lane 2 generation with Imagen-3.0
+        console.log('🎨 Lane 2: Generating with Imagen-3.0...');
+      } else {
+        // TODO: Implement Lane 2 generation with Veo 3.1
+        console.log('🎬 Lane 2: Generating with Veo 3.1...');
+      }
       
       // Simulate API call for now
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      // Deduct demo credit
-      setDemoCredits(prev => prev - 1);
+      // Deduct demo credit (skip for admin)
+      if (!isAdmin) {
+        setDemoCredits(prev => prev - creditCost);
+      }
+      
+      // Set mock result (will be replaced with real URL from API)
+      setGeneratedResult(previewUrl); // For now, show the uploaded image as placeholder
       
       console.log('✅ Generation complete!');
-      console.log(`💰 Credits remaining: ${demoCredits - 1}`);
-      alert(`Generation complete! (Backend API not connected yet)\n\nCredits remaining: ${demoCredits - 1}/10\n\nNext steps:\n1. Set up Google Cloud Vertex AI\n2. Connect Gemini + Imagen APIs\n3. Test real AI outputs`);
+      console.log(`💰 Credits remaining: ${isAdmin ? '∞' : demoCredits - creditCost}`);
+      
+      // Don't show alert, let ResultPanel handle the display
     } catch (error) {
       console.error('❌ Generation failed:', error);
       alert('Generation failed. Check console for details.');
+      setGeneratedResult(null);
     } finally {
       setIsGenerating(false);
     }
@@ -84,7 +124,18 @@ export default function HomePage() {
     setPreviewUrl(null);
     setUserPrompt('');
     setIsGenerating(false);
+    setGeneratedResult(null);
+    setOutputType('image');
     // Keep demo credits (don't reset on image reset)
+  };
+
+  const handleCloseResult = () => {
+    setGeneratedResult(null);
+  };
+
+  const handleGenerateAgain = () => {
+    setGeneratedResult(null);
+    // Keep the current prompt and settings
   };
 
   return (
@@ -99,11 +150,15 @@ export default function HomePage() {
             previewUrl={previewUrl}
             selectedMode={selectedMode}
             userPrompt={userPrompt}
+            outputType={outputType}
             onPromptChange={setUserPrompt}
             onModeChange={handleModeChange}
+            onOutputTypeChange={setOutputType}
             onGenerate={handleGenerate}
             onReset={handleReset}
             isGenerating={isGenerating}
+            demoCredits={demoCredits}
+            isAdmin={isAdmin}
           />
         )}
       </AnimatePresence>
@@ -113,6 +168,18 @@ export default function HomePage() {
         <ModeSelector
           selectedMode={selectedMode}
           onModeChange={handleModeChange}
+        />
+      )}
+
+      {/* Result Panel - Show generated result */}
+      {generatedResult && (
+        <ResultPanel
+          resultUrl={generatedResult}
+          outputType={outputType}
+          mode={selectedMode}
+          prompt={userPrompt}
+          onClose={handleCloseResult}
+          onGenerateAgain={handleGenerateAgain}
         />
       )}
 
@@ -136,9 +203,19 @@ export default function HomePage() {
                 The Category King • Powered by Google Vertex AI
               </p>
               {/* Demo Credits Display */}
-              <p className="text-velvet-gold text-xs mt-2">
-                Demo Credits: {demoCredits}/10 (Refresh to reset)
-              </p>
+              <div className="flex items-center gap-3 mt-2">
+                <p className="text-velvet-gold text-xs">
+                  {isAdmin ? '∞ Unlimited Credits (Admin)' : `Demo Credits: ${demoCredits}/10`}
+                </p>
+                {!isAdmin && (
+                  <button
+                    onClick={handleAdminLogin}
+                    className="text-xs text-gray-600 hover:text-velvet-gold transition-colors underline"
+                  >
+                    Admin Login
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="flex gap-8 text-sm text-gray-400">

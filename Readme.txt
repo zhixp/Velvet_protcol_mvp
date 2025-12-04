@@ -128,3 +128,7 @@ CRITICAL INSTRUCTION: Every time you fix a bug, change a feature, or refactor co
 [2025-12-04] Added demo credit system (in-memory counter) to test UX without Firebase.
 [2025-12-04] Updated deployment strategy: Firebase deferred to Phase 2, focus on AI output testing.
 [2025-12-04] Created QUICK_START.md with streamlined deployment guide for Vercel + Vertex AI only.
+[2025-12-04] Added Image/Video output type selector with credit display (1 credit vs 10 credits).
+[2025-12-04] Implemented admin password bypass (velvet2025) for unlimited testing credits.
+[2025-12-04] Created ResultPanel component to display generated images/videos with download.
+[2025-12-04] Updated GenerationPanel with dynamic credit costs and insufficient credit warnings.
