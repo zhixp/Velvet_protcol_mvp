@@ -77,35 +77,69 @@ export default function HomePage() {
     });
 
     try {
-      // TODO: Implement Lane 1 analysis with Gemini
+      // LANE 1: Analyze with Gemini 1.5 Pro
       console.log('📊 Lane 1: Analyzing with Gemini 1.5 Pro...');
       
+      const analysisResponse = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: userPrompt,
+          mode: selectedMode,
+        }),
+      });
+
+      if (!analysisResponse.ok) {
+        const error = await analysisResponse.json();
+        throw new Error(error.message || 'Analysis failed');
+      }
+
+      const analysisData = await analysisResponse.json();
+      const { analysis } = analysisData;
+      
+      console.log('✅ Lane 1 Complete:', analysis.detectedVibe);
+      console.log('📝 Director\'s Script:', analysis.directorScript);
+
+      // LANE 2: Generate with Imagen-3.0 or Veo 3.1
       if (outputType === 'image') {
-        // TODO: Implement Lane 2 generation with Imagen-3.0
         console.log('🎨 Lane 2: Generating with Imagen-3.0...');
       } else {
-        // TODO: Implement Lane 2 generation with Veo 3.1
         console.log('🎬 Lane 2: Generating with Veo 3.1...');
       }
       
-      // Simulate API call for now
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      const generateResponse = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          enhancedPrompt: analysis.enhancedPrompt,
+          outputType: outputType,
+        }),
+      });
+
+      if (!generateResponse.ok) {
+        const error = await generateResponse.json();
+        throw new Error(error.message || 'Generation failed');
+      }
+
+      const generateData = await generateResponse.json();
+      
+      console.log('✅ Lane 2 Complete!');
+      console.log(`🎯 Model: ${generateData.model}`);
       
       // Deduct demo credit (skip for admin)
       if (!isAdmin) {
         setDemoCredits(prev => prev - creditCost);
       }
       
-      // Set mock result (will be replaced with real URL from API)
-      setGeneratedResult(previewUrl); // For now, show the uploaded image as placeholder
+      // Set real result from API
+      setGeneratedResult(generateData.resultUrl);
       
       console.log('✅ Generation complete!');
       console.log(`💰 Credits remaining: ${isAdmin ? '∞' : demoCredits - creditCost}`);
       
-      // Don't show alert, let ResultPanel handle the display
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Generation failed:', error);
-      alert('Generation failed. Check console for details.');
+      alert(`Generation failed: ${error.message}\n\nCheck console for details.`);
       setGeneratedResult(null);
     } finally {
       setIsGenerating(false);
