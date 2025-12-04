@@ -126,6 +126,9 @@ export default function HomePage() {
       console.log('✅ Lane 2 Complete!');
       console.log(`🎯 Model: ${generateData.model}`);
       
+      // BUG FIX 1: Calculate new credit balance BEFORE updating state
+      const newCreditBalance = isAdmin ? demoCredits : demoCredits - creditCost;
+      
       // Deduct demo credit (skip for admin)
       if (!isAdmin) {
         setDemoCredits(prev => prev - creditCost);
@@ -135,7 +138,7 @@ export default function HomePage() {
       setGeneratedResult(generateData.resultUrl);
       
       console.log('✅ Generation complete!');
-      console.log(`💰 Credits remaining: ${isAdmin ? '∞' : demoCredits - creditCost}`);
+      console.log(`💰 Credits remaining: ${isAdmin ? '∞' : newCreditBalance}`);
       
     } catch (error: any) {
       console.error('❌ Generation failed:', error);
@@ -278,4 +281,3 @@ export default function HomePage() {
     </main>
   );
 }
-

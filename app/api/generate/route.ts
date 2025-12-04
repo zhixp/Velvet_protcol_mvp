@@ -70,6 +70,11 @@ export async function POST(request: NextRequest) {
 
       // Extract video URL (adjust based on actual API response)
       const videoUrl = result.response?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      
+      // BUG FIX 2: Validate video URL before returning
+      if (!videoUrl || videoUrl.trim() === '') {
+        throw new Error('Veo API returned empty video URL. Response may not contain expected data structure.');
+      }
 
       return NextResponse.json({
         success: true,
@@ -103,12 +108,21 @@ export async function POST(request: NextRequest) {
       const candidate = response?.candidates?.[0];
       
       if (!candidate) {
-        throw new Error('No image generated from Imagen');
+        throw new Error('No image generated from Imagen - candidates array is empty');
       }
 
       // Get image data (base64 or URL depending on API response)
       const imagePart = candidate.content?.parts?.[0];
       const imageData = imagePart?.inlineData?.data || imagePart?.text || '';
+
+      // BUG FIX 2: Validate image data exists before constructing data URL
+      if (!imageData || imageData.trim() === '') {
+        console.error('❌ Imagen API response structure:', JSON.stringify(result.response, null, 2));
+        throw new Error(
+          'Imagen API returned empty image data. Expected inlineData.data or text field in response but found neither. ' +
+          'Check console logs for full API response structure.'
+        );
+      }
 
       // If base64, convert to data URL
       const imageUrl = imageData.startsWith('data:') 
