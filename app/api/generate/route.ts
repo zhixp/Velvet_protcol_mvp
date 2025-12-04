@@ -114,11 +114,11 @@ export async function POST(request: NextRequest) {
       });
 
     } else {
-      // IMAGE GENERATION (Imagen-3.0 Fast)
-      console.log('📸 Generating image with Imagen-3.0 Fast...');
+      // IMAGE GENERATION (imagegeneration@006)
+      console.log('📸 Generating image with imagegeneration@006...');
       
       const generativeModel = vertexAI.getGenerativeModel({
-        model: 'imagen-3.0-fast-generate-001',
+        model: 'imagegeneration@006',
       });
 
       const result = await generativeModel.generateContent({
